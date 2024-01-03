@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { ALL_CUSTOMERS } from 'DUMMY_DATA/customers';
 import { CustomerDTO, ICustomer } from 'types';
@@ -13,6 +18,14 @@ export class CustomersService {
 
   getCustomerById(id: number) {
     const requiredCustomer = this.allCustomers.find((cus) => cus.id === id);
+
+    if (!requiredCustomer) {
+      throw new HttpException(
+        { status: HttpStatus.NOT_FOUND, error: 'No user found with this id' },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     return requiredCustomer;
   }
 
@@ -30,10 +43,16 @@ export class CustomersService {
 
   updateCustomer(id: number, newCustomerDetails: CustomerDTO) {
     const customer = this.getCustomerById(id);
-    let updatedCustomer: ICustomer;
 
-    if (customer) {
-      updatedCustomer = {
+    if (!customer) {
+      throw new NotFoundException('No user found with the given id', {
+        cause: new Error(),
+        description: 'No user found with the given id',
+      });
+    }
+
+    try {
+      const updatedCustomer: ICustomer = {
         id,
         ...newCustomerDetails,
       };
@@ -41,9 +60,12 @@ export class CustomersService {
       const updateIndex = this.allCustomers.findIndex((cus) => cus.id === id);
       this.allCustomers[updateIndex] = updatedCustomer;
       return updatedCustomer;
+    } catch (error) {
+      throw new HttpException(
+        { status: HttpStatus.INTERNAL_SERVER_ERROR, error },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    return 'Customer not found';
   }
 
   deleteCustomer(id: number) {
