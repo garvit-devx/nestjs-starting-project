@@ -28,15 +28,11 @@ export class CustomersController {
     @Req() request: Request<{ id: string; body: CustomerDTO }>,
     @Res() res: Response,
   ) {
-    const updatedResult = this.customersService.updateCustomer(
+    const response = this.customersService.updateCustomer(
       Number(request.params.id),
       request.body,
     );
 
-    if (updatedResult === 'Customer not found') {
-      return res.status(404).send(updatedResult);
-    }
-
-    return res.status(200).send(updatedResult);
+    return res.json(response);
   }
 }
