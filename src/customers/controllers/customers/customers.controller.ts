@@ -1,34 +1,42 @@
-import { Controller, Get, Post, Req } from '@nestjs/common';
-import { Request } from 'express';
+import { Controller, Get, Post, Req, Put, Res } from '@nestjs/common';
+import { Request, Response } from 'express';
 
-import { ICustomer, CustomerDTO } from 'types';
-import { ALL_CUSTOMERS } from 'DUMMY_DATA/customers';
+import { CustomerDTO } from 'types';
+import { CustomersService } from 'src/customers/service/customers/customers.service';
 
 @Controller('customers')
 export class CustomersController {
+  constructor(private customersService: CustomersService) {}
+
   @Get()
   getAllCustomers() {
-    return ALL_CUSTOMERS;
+    return this.customersService.getAllCustomers();
   }
 
   @Get(':id')
   getCustomerById(@Req() request: Request<{ id: string }>) {
-    const requiredCustomer = ALL_CUSTOMERS.find(
-      (cust) => cust.id === Number(request.params.id),
-    );
-    return requiredCustomer;
+    return this.customersService.getCustomerById(Number(request.params.id));
   }
 
   @Post('new')
   addNewCustomer(@Req() request: Request<{ body: CustomerDTO }>) {
-    const newCustomer: ICustomer = {
-      ...request.body,
-      id:
-        ALL_CUSTOMERS.length > 0
-          ? ALL_CUSTOMERS[ALL_CUSTOMERS.length - 1].id + 1
-          : 1,
-    };
-    ALL_CUSTOMERS.push(newCustomer); // Only creates a new entry in the in-memory DB. Does not write the new entry in the file
-    return newCustomer;
+    return this.customersService.addNewCustomer(request.body);
+  }
+
+  @Put('update/:id')
+  updateCustomer(
+    @Req() request: Request<{ id: string; body: CustomerDTO }>,
+    @Res() res: Response,
+  ) {
+    const updatedResult = this.customersService.updateCustomer(
+      Number(request.params.id),
+      request.body,
+    );
+
+    if (updatedResult === 'Customer not found') {
+      return res.status(404).send(updatedResult);
+    }
+
+    return res.status(200).send(updatedResult);
   }
 }
