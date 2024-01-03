@@ -1,8 +1,21 @@
-import { Controller, Get, Post, Req, Put, Res } from '@nestjs/common';
-import { Request, Response } from 'express';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Res,
+  Param,
+  ParseIntPipe,
+  Body,
+  UsePipes,
+} from '@nestjs/common';
+import { Response } from 'express';
 
 import { CustomerDTO } from 'types';
 import { CustomersService } from 'src/customers/service/customers/customers.service';
+import { UppercaseTransformPipe } from 'src/pipes/transform.pipe';
+import { ZodValidationPipe } from 'src/pipes/zod-validator.pipe';
+import { createCustomerSchema } from 'src/schema';
 
 @Controller('customers')
 export class CustomersController {
@@ -14,24 +27,23 @@ export class CustomersController {
   }
 
   @Get(':id')
-  getCustomerById(@Req() request: Request<{ id: string }>) {
-    return this.customersService.getCustomerById(Number(request.params.id));
+  getCustomerById(@Param('id', ParseIntPipe) id: number) {
+    return this.customersService.getCustomerById(id);
   }
 
   @Post('new')
-  addNewCustomer(@Req() request: Request<{ body: CustomerDTO }>) {
-    return this.customersService.addNewCustomer(request.body);
+  @UsePipes(new ZodValidationPipe(createCustomerSchema))
+  addNewCustomer(@Body(new UppercaseTransformPipe()) body: CustomerDTO) {
+    return this.customersService.addNewCustomer(body);
   }
 
   @Put('update/:id')
   updateCustomer(
-    @Req() request: Request<{ id: string; body: CustomerDTO }>,
+    @Param('id') id: string,
+    @Body(new UppercaseTransformPipe()) body: CustomerDTO,
     @Res() res: Response,
   ) {
-    const response = this.customersService.updateCustomer(
-      Number(request.params.id),
-      request.body,
-    );
+    const response = this.customersService.updateCustomer(Number(id), body);
 
     return res.json(response);
   }
