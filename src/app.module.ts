@@ -10,6 +10,7 @@ import { CustomersModule } from './customers/customers.module';
   providers: [],
 })
 export class AppModule implements NestModule {
+  // Some comment
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(SimpleMiddleware, LoggerMiddleware).forRoutes('customers');
   }
