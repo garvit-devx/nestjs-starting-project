@@ -10,6 +10,7 @@ import { CustomerDTO, ICustomer } from 'types';
 
 @Injectable()
 export class CustomersService {
+  // Customer service comment
   private allCustomers = ALL_CUSTOMERS;
 
   getAllCustomers() {
