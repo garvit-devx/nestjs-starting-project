@@ -19,6 +19,7 @@ import { createCustomerSchema } from 'src/schema';
 
 @Controller('customers')
 export class CustomersController {
+  // Customer controller comment
   constructor(private customersService: CustomersService) {}
 
   @Get()
